@@ -4,7 +4,9 @@ Since I'm currently working with the JNI Java bindings, these notes will likely 
 as opposed to the native C or the ISLPy Python bindings.
 
 - [Sources of Information](#sources-of-information)
-- [ISL Give, Take, Keep, and Null](#isl-give-take-keep-and-null)
+- [ISL Give, Take, Keep, and Null Attributes](#isl-give-take-keep-and-null-attributes)
+- [Context Objects](#context-objects)
+- [Space Objects](#space-objects)
 
 ## Sources of Information
 TL;DR: See the table below for some handy links.
@@ -42,7 +44,7 @@ The repository has some other bindings, but the ISL ones are in their own packag
 | ISLPy GitHub Page                                | https://github.com/inducer/islpy                                                                          |
 | ***Louis's Simplifying Reductions GitHub Page*** | https://github.com/lnarmour/simplifying-reductions                                                        |
 
-## ISL Give, Take, Keep, and Null
+## ISL Give, Take, Keep, and Null Attributes
 In the ISL C code, there are four commonly used attributes.
 In the code, they appear as `__isl_give`, `__isl_keep`, `__isl_take`, and `__isl_null`.
 These are macros (defined in `extract_interface.cc`)
@@ -68,3 +70,25 @@ meaning you are free to continue using it.
 
 The attribute `__isl_null` means a `null` value is returned.
 This appears to be used as the return type for functions which free memory.
+
+## Context Objects
+I don't understand this yet.
+TODO: investigate and flesh out.
+
+## Space Objects
+Any time you're working with sets or relations (maps) in ISL,
+the "space" they exist in must be defined.
+
+The space of a set defines any parameters
+and the indices that values in the set are defined over.
+For example, the parameterized set `[N] -> { [i]: 0<i<N }` has a space `[N] -> { [i] }`.
+This means that there is a single parameter, `N`,
+and the space is 1-dimensional with that dimension being called `i`.
+
+The space of a map is pretty much the same,
+but differentiates between indexes for the input and output of the map,
+as the number of indexes and labels of the indexes may differ.
+For example, the map `[N] -> { [x] -> [i,j] : i=x, j=N }` 
+has the space `[N] -> { [x] -> [i,j] }`.
+This means that there is a single parameter `N`,
+a single input index `x`, and two output indexes `i` and `j`.
