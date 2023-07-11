@@ -22,7 +22,9 @@ If you've done these steps before, I recommend removing the
 GeCoS ISL Tools projects from Eclipse.
 It may not be necessary, but it was giving me some issues at the time of writing (11-Jul-2023).
 To do this, right-click the project, select "Delete",
-check the box to delete the nested projects, then click OK.
+check the box to delete the nested projects (if applicable),
+make sure the box for deleting the contents on disk is NOT selected, then click OK.
+If there's a warning saying that resources aren't in sync, you can press "Continue".
 
 You may also want to move the repository somewhere else and start these steps from scratch.
 Reusing a repository was also giving me some issues at the time of writing (11-Jul-2023).
@@ -263,6 +265,14 @@ https://gitlab.inria.fr/gecos/gecos-tools/gecos-tools-jnimapper/-/blob/master/bu
 | protected         | Generates a `protected` method. By default, all generated methods are public.                                                         |
 | rename=newName    | The generated method will have whatever name you specify on the right-hand side of the equals ("newName" in the example on the left). |
 
+The second part of the binding is the signature of the method being bound to.
+Copy the method signature from ISL's code, and paste it here.
+If the signature was split across multiple lines,
+remove the newlines so they appear on a single line.
+If the function's return type has an `__isl_give` annotation, remove it.
+In the function's arguments, replace `__isl_give` with `give`,
+`__isl_take` with `take`, `__isl_keep` with `keep`, etc.
+
 ## Generate the New JNI Mapping
 As of 11-Jul-2023, these tools don't work the exact way they're supposed to.
 Apparently, the JNI Mapping plugin is very sensitive to the version of Eclipse,
@@ -293,20 +303,12 @@ In the Project Explorer, find the JNI map file (`fr.irisa.cairn.jnimap.isl/src/I
 Right-click the file and select "Generate JNI Mapping".
 If any errors appear, it may be because you didn't delete the Java files.
 If so, start this section over.
-
-Give Eclipse a few moments to finish building,
-then check if there were any compilation errors.
-If there weren't any, then something has likely been fixed since the time of writing,
-so try re-running that test Xtext file from the
-[Test That Everything Works So Far](#test-that-everything-works-so-far) section.
-If that test passes, try using the new functions.
-If that works, you can delete the copy of the `src-gen` directory, and you're done!
-Skip the rest of this document, and consider making updates to reflect the fix.
-
-The rest of this document assumes Eclipse reported errors (I had 450 of them).
+Allow Eclipse to finish building the code before continuing.
+There will be many compilation errors.
+This is OK, and we will be fixing those next.
 
 ## Fix the JNI Mapping
-First, close Eclipse.
+Close Eclipse again.
 In short, we will want to restore the previously saved copy of the `src-gen` folder,
 but with the changes that were needed to reflect the new bindings you want.
 Then, we will likely need to restore automatic changes to some other files.
@@ -322,7 +324,7 @@ There should be a single line added per ISL function you added.
 git diff bundles/fr.irisa.cairn.jnimap.isl/src-gen/fr/irisa/cairn/jnimap/isl/ISLNative.java
 ```
 
-After that, you will want to do the same to the classes
+After that, you will want to do the same to the Java classes
 which are supposed to contain these functions.
 For example, I was adding the `isl_mat_concat` function (which concatenates two matrices).
 Since I put this function in the `ISLMatrix` group,
@@ -352,20 +354,17 @@ Make sure that other parts of such files are not modified negatively.
 If there are other files which were modified but shouldn't have been,
 use `git restore` to reset the file to what it was before.
 
-## Recompile the GeCoS ISL Tools
-Recompile the GeCoS ISL Tools repository using the same steps as before.
-See: [Compiling the GeCoS ISL Tools](#compiling-the-gecos-isl-tools).
+In the `native` folder, some of the makefiles may also have been changed.
+Use `git status` and `git diff` again to look at the changes.
+If there are any changes to the files, aside from fixing the `JAVA_HOME` path,
+either use `git restore` or manually edit the files to put them back how they were.
 
-If you get an error saying that the `javah` command wasn't found,
-use `git status` and `git diff` to check if there were any changes to the Makefiles
-that aren't supposed to be there.
-At the time of writing, it looks like Eclipse may automatically change and break things.
-If this is the case, use `git restore` to restore them to their original state,
-or manually edit them.
-
-After this step, I recommend running `git status` and checking what files have all changed.
-Below is a list of roughly which files should be present.
-If there are more, you may run into issues that you need to fix.
+Before continuing to the next step, I recommend navigating to the root of the repo
+and running the `git status` command one last time.
+The list below indicates all of the files which are expected to be changed.
+If there are other files that have been changed,
+or if a file that was supposed to change hasn't been changed,
+you will want to investigate this so you don't encounter errors later on.
 
 - `bundles/fr.irisa.cairn.jnimap.isl/lib/ISL_linux_64/libgmp.so.10`
 - `bundles/fr.irisa.cairn.jnimap.isl/lib/ISL_linux_64/libisl.so.22`
@@ -377,6 +376,13 @@ If there are more, you may run into issues that you need to fix.
   - `bundles/fr.irisa.cairn.jnimap.isl/native/`
 - The Java files in the below directory that you've added bindings to.
   - `bundles/fr.irisa.cairn.jnimap.isl/src-gen/fr/irisa/cairn/jnimap/isl/`
+
+## Recompile the GeCoS ISL Tools
+Recompile the GeCoS ISL Tools repository using the same steps as before.
+See: [Compiling the GeCoS ISL Tools](#compiling-the-gecos-isl-tools).
+Look carefully for compile errors being thrown during these steps.
+It's easier to catch and fix these issues now before opening up Eclipse again,
+as Eclipse may try to automatically change some files again.
 
 ## Load the New Bindings
 Finally, we need to test the newly added bindings.
