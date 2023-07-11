@@ -9,7 +9,9 @@ This document describes how to add bindings for ISL functions to the JNI binding
 - [Test That Everything Works So Far](#test-that-everything-works-so-far)
 - [Modifying the ISL Bindings](#modifying-the-isl-bindings)
 - [Generate the New JNI Mapping](#generate-the-new-jni-mapping)
-- [Fix the JNI Mapping](#fix-the-jni-mapping)
+- [Fix the `src-gen` Directory](#fix-the-src-gen-directory)
+- [Fix the C Files and Makefiles](#fix-the-c-files-and-makefiles)
+- [Double Check Changed Files](#double-check-changed-files)
 - [Recompile the GeCoS ISL Tools](#recompile-the-gecos-isl-tools)
 - [Load the New Bindings](#load-the-new-bindings)
 - [Test the New Bindings](#test-the-new-bindings)
@@ -307,11 +309,11 @@ Allow Eclipse to finish building the code before continuing.
 There will be many compilation errors.
 This is OK, and we will be fixing those next.
 
-## Fix the JNI Mapping
+## Fix the `src-gen` Directory
 Close Eclipse again.
 In short, we will want to restore the previously saved copy of the `src-gen` folder,
 but with the changes that were needed to reflect the new bindings you want.
-Then, we will likely need to restore automatic changes to some other files.
+Then, we will need to restore automatic changes to some other files.
 
 The first file we want to get changes from is `ISLNative.java`.
 Many lines will likely be chagned here, but we only want to keep the new lines
@@ -334,17 +336,20 @@ then copy those changes to the copied version of that file that's outside the re
 
 Finally, the two `src-gen` directories need to be swapped.
 The commands below will move the newly-generated `src-gen` directory to outside the repo,
-then move the original `src-gen` directory (with the edits) back into the repo.
+then copy the original `src-gen` directory (with the edits) back into the repo.
+Note: I chose to copy the directory instead of moving it
+in case something goes wrong and we need to revert to that version again.
 We won't delete the newly-generated one until after the new bindings have been tested.
 These commands assume that your terminal are in the root of the repo
 and that you made the initial copy of the `src-gen` folder in the same spot as I did.
 
 ```bash
 mv bundles/fr.irisa.cairn.jnimap.isl/src-gen/ ../src-gen-newer
-cp ../src-gen bundles/fr.irisa.cairn.jnimap.isl/
+cp -r ../src-gen bundles/fr.irisa.cairn.jnimap.isl/
 ```
 
-Now that the `src-gen` directory should be correct, there are a few C files to fix.
+## Fix the C Files and Makefiles
+Now that the `src-gen` directory should be correct, there are a few other files to fix.
 Navigate to the `bundles/fr.irisa.cairn.jnimap.isl/native` directory,
 then use the `git status` command.
 Look for any C files in this directory.
@@ -359,6 +364,7 @@ Use `git status` and `git diff` again to look at the changes.
 If there are any changes to the files, aside from fixing the `JAVA_HOME` path,
 either use `git restore` or manually edit the files to put them back how they were.
 
+## Double Check Changed Files
 Before continuing to the next step, I recommend navigating to the root of the repo
 and running the `git status` command one last time.
 The list below indicates all of the files which are expected to be changed.
@@ -381,6 +387,9 @@ you will want to investigate this so you don't encounter errors later on.
 Recompile the GeCoS ISL Tools repository using the same steps as before.
 See: [Compiling the GeCoS ISL Tools](#compiling-the-gecos-isl-tools).
 Look carefully for compile errors being thrown during these steps.
+
+After recompiling, you may want to triple-check `git status` one last time
+for any files which have changed that shouldn't have been.
 It's easier to catch and fix these issues now before opening up Eclipse again,
 as Eclipse may try to automatically change some files again.
 
