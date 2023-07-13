@@ -7,6 +7,8 @@ as opposed to the native C or the ISLPy Python bindings.
 - [ISL Give, Take, Keep, and Null Attributes](#isl-give-take-keep-and-null-attributes)
 - [Context Objects](#context-objects)
 - [Space Objects](#space-objects)
+- [Basic Sets](#basic-sets)
+- [Sets](#sets)
 
 ## Sources of Information
 TL;DR: See the table below for some handy links.
@@ -92,3 +94,29 @@ For example, the map `[N] -> { [x] -> [i,j] : i=x, j=N }`
 has the space `[N] -> { [x] -> [i,j] }`.
 This means that there is a single parameter `N`,
 a single input index `x`, and two output indexes `i` and `j`.
+
+## Basic Sets
+Implemented as a map in the C code.
+
+Contains two matrices: one for the inequality constraints
+and one for the equality constraints.
+In the Inria AlphaZ repo, the `DomainOperations` class
+has some useful methods for retrieving these matrices.
+
+## Sets
+ISL Set objects appear to be a union of other sets, including basic sets.
+
+If you want the basic sets that make up the union,
+you can use `isl_set_get_basic_set_list(set)` function in `isl_map.c`.
+If you're using the Java or Python bindings, there are equivalent methods.
+For the Java bindings, you have `ISLSet.getBasicSets()` and `ISLSet.getBasicSetAt(index)`.
+For the Python bindings, you have
+[`Set.get_basic_set_list()`](https://documen.tician.de/islpy/ref_set.html#islpy.Set.get_basic_set_list)
+and [`Set.get_basic_sets()`](https://documen.tician.de/islpy/ref_set.html#islpy.Set.get_basic_sets).
+
+Sets aren't necessarily disjoint.
+This means, if you get the sets that make up this set, some of them may overlap.
+To get a version of the set that's disjoint,
+you can use the `isl_set_make_disjoint(set)` function in `isl_map_subtract.c`.
+In the Java bindings, this is `ISLSet.makeDisjoint()`.
+In the Python bindings, this is `Set.make_disjoint()`.

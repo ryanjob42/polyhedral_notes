@@ -34,25 +34,29 @@ Commands that apply transformations to reduction expressions.
 These are technically a subset of the "Transformation" category,
 but both categories are large enough where I wanted to split them.
 
-| Command                    | CSU AlphaZ | Inria AlphaZ | Notes                                                                                                   |
-| -------------------------- | :--------: | :----------: | ------------------------------------------------------------------------------------------------------- |
-| DetectReductions           |     X      |              |                                                                                                         |
-| Distributivity             |            |      X       | Automatically applies the `FactorOutFromReduction` command.                                             |
-| FactorOutFromReduction     |     X      |      X       | CSU AlphaZ does not check legality, but Inria AlphaZ does.                                              |
-| ForceCoB                   |     X      |              |                                                                                                         |
-| HigherOrderOperations      |            |      X       | Converts a summation reduction into a multiplication (if legal).                                        |
-| HoistOutOfReduction        |            |      X       | Converts a reduction of the form `reduce(op, f, E1 op E2)` to `reduce(op, f, E1) op reduce(op, f, E2)`. |
-| Idempotence                |            |      X       | No clue what this does.                                                                                 |
-| MergeReductions            |     X      |              |                                                                                                         |
-| NormalizeReduction         |     X      |      X       |                                                                                                         |
-| PermutationCaseReduce      |     X      |      X       |                                                                                                         |
-| ReductionComposition       |     X      |      X       |                                                                                                         |
-| Reduction Decomposition    |     X      |      X       |                                                                                                         |
-| SameOperatorSimplification |            |      X       | Automatically applies the `HoistOutOfReduction` command.                                                |
-| SerializeReduction         |     X      |              |                                                                                                         |
-| Simplifying Reductions     |     X      |      X       |                                                                                                         |
-| SplitReductionBody         |     X      |              |                                                                                                         |
-| TransformReductionBody     |     X      |              |                                                                                                         |
+| Command                       | CSU AlphaZ | Inria AlphaZ | Notes                                                                                                   |
+| ----------------------------- | :--------: | :----------: | ------------------------------------------------------------------------------------------------------- |
+| DetectReductions              |     X      |              |                                                                                                         |
+| [Distributivity][2.1]         |            |      X       | Automatically applies the `FactorOutFromReduction` command.                                             |
+| [FactorOutFromReduction][2.2] |     X      |      X       | CSU AlphaZ does not check legality, but Inria AlphaZ does.                                              |
+| ForceCoB                      |     X      |              |                                                                                                         |
+| HigherOrderOperations         |            |      X       | Converts a summation reduction into a multiplication (if legal).                                        |
+| HoistOutOfReduction           |            |      X       | Converts a reduction of the form `reduce(op, f, E1 op E2)` to `reduce(op, f, E1) op reduce(op, f, E2)`. |
+| Idempotence                   |            |      X       | No clue what this does.                                                                                 |
+| MergeReductions               |     X      |              |                                                                                                         |
+| NormalizeReduction            |     X      |      X       |                                                                                                         |
+| PermutationCaseReduce         |     X      |      X       |                                                                                                         |
+| ReductionComposition          |     X      |      X       |                                                                                                         |
+| Reduction Decomposition       |     X      |      X       |                                                                                                         |
+| SameOperatorSimplification    |            |      X       | Automatically applies the `HoistOutOfReduction` command.                                                |
+| SerializeReduction            |     X      |              |                                                                                                         |
+| [Simplifying Reductions][2.3] |     X      |      X       |                                                                                                         |
+| SplitReductionBody            |     X      |              |                                                                                                         |
+| TransformReductionBody        |     X      |              |                                                                                                         |
+
+[2.1]: ./Command%20Descriptions.md#distributivity
+[2.2]: ./Command%20Descriptions.md#factor-out-from-reduction
+[2.3]: ./Command%20Descriptions.md#simplifying-reductions
 
 ## Transformation Commands
 Commands that apply transformations to expressions.
@@ -79,11 +83,13 @@ are separated out into their own [Reduction Commands](#reduction-commands) categ
 | setMinParamValues                                                                                                        |     X      |              |                                                                                         |
 | setRatio                                                                                                                 |     X      |              |                                                                                         |
 | setTileGroup                                                                                                             |     X      |              |                                                                                         |
-| Simplify, SimplifyExpressions                                                                                            |     X      |      X       | I'm only assuming these commands are the same, I haven't double checked. TODO.          |
+| Simplify, [SimplifyExpressions][3.1]                                                                                     |     X      |      X       | I'm only assuming these commands are the same, I haven't double checked. TODO.          |
 | Split                                                                                                                    |     X      |              |                                                                                         |
 | SplitUnion, SplitUnionIntoCase                                                                                           |     X      |      X       | I'm only assuming these commands are the same, I haven't double checked. TODO.          |
 | SubstituteByDef                                                                                                          |            |      X       | Might be similar to some of the CSU AlphaZ "Inline" commands.                           |
 | UniformizeInContext                                                                                                      |     X      |              |                                                                                         |
+
+[3.1]: ./Command%20Descriptions.md#simplify-expressions
 
 ## Utility Commands
 Miscellaneous commands for operating the AlphaZ compiler.
