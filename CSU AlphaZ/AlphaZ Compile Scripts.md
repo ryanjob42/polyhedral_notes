@@ -141,7 +141,9 @@ AlphaZ has a handful of commands you can use to clean up your program.
 After defining what calculations a program must perform,
 you'll often want to define the order in which points of the iteration space are visited.
 This is done by defining a schedule, or a "space time map" in AlphaZ terms.
-The mapping is defined just like a standard dependence expression in Alpha.
+The mapping is defined just like a standard [dependence expression](Alpha%20Language.md#dependence-expressions) in Alpha.
+The left-hand-side of the dependence expression describes an arbitrary point of the variable,
+and the right-hand-side describes the time at which it will be evaluated (i.e. at which loop iteration).
 The following example sets the schedule for a 3D variable `myVar`
 to a simple 3D schedule `(i,j,k -> i,j,k)`.
 
@@ -203,6 +205,15 @@ for both the source and destination.
 
 ```
 setMemoryMap(program, system, "source", "destination", "(i,j,k -> i,j)");
+```
+
+It is also possible to reduce the size of individual dimensions in the storage variable,
+modding them by a constant factor, using an additional parameter.
+A factor of `0` indicates that index is not modded. For instance, the example below mods the `k` index by 2,
+maintaining just 2 locations for each `i,j` index pair.
+
+```
+setMemoryMap(program, system, "source", "destination", "(i,j,k -> i,j,k)", "0,0,2")
 ```
 
 Looking at the AlphaZ command reference, there appears to be a `setMemorySpace` command.
