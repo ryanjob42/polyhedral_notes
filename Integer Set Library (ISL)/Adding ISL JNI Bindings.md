@@ -15,6 +15,7 @@ This document describes how to add bindings for ISL functions to the JNI binding
 - [Recompile the GeCoS ISL Tools](#recompile-the-gecos-isl-tools)
 - [Load the New Bindings](#load-the-new-bindings)
 - [Test the New Bindings](#test-the-new-bindings)
+- [How to Fix `UnsatisfiedLinkError`](#how-to-fix-unsatisfiedlinkerror)
 
 ## Preparation
 Before doing any of this, you should have a working version of Eclipse already set up.
@@ -168,7 +169,10 @@ The second to last command will then put you back to the  root of the repository
 (or wherever you ran the `pushd` command if you modified that path).
 The last command simply cleans up the copy of the ISL repository that gets cloned
 which is no longer needed.
-Note: the final call to `make` may return some warnings, which is OK.
+Note 1: the final call to `make` may return some warnings, which is OK.
+Note 2: if you followed the instructions to
+[fix an `UnsatisfiedLinkError`](#how-to-fix-unsatisfiedlinkerror),
+do not run the final `rm` command.
 
 ```bash
 pushd bundles/fr.irisa.cairn.jnimap.isl/native/build/gmp
@@ -447,3 +451,62 @@ For each of the three directories indicated by the
 go there and run `make clean`.
 Then, re-compile all of those.
 Finally, open Eclipse again, clean all projects, then rebuild them all.
+
+## How to Fix `UnsatisfiedLinkError`
+When you test the binding, you may get an unsatisfied link error.
+This will happen if the binding you are using is not actually part of ISL's public API.
+For example, I ran into this with the `isl_basic_set_is_bounded` function.
+
+__WARNING:__ These instructions detail the process of having a function be exported by ISL.
+If a function is not exported by ISL, there may be a reason for it, so this is not recommended.
+Additionally, it doesn't seem like an easy thing to push back to the git repository.
+Only follow these instructions if you are confident in what you're doing.
+
+First, you'll need to download the ISL repository in the correct location.
+The easiest way to do this is to build ISL the way you normally would for
+adding functions to the JNI bindings.
+Follow the first half of the instructions from the section
+[Compiling the GeCoS ISL Tools](#compiling-the-gecos-isl-tools),
+stopping after the second `make` command.
+
+From now on, any time you run the steps in the section
+[Compiling the GeCoS ISL Tools](#compiling-the-gecos-isl-tools),
+do not run the last command (the `rm` one), as it will delete the ISL repository
+and mess up your work.
+
+Now, you'll need to find the copy of the ISL repository that was cloned.
+From the root of the `gecos-tools-isl` repository,
+you can find the ISL repository at `bundles/fr.irisa.cairn.jnimap.isl/native/build/isl/isl`.
+
+Inside the ISL repository is an `include/isl` folder containing many header (`.h`) files.
+In these files, find the function you want to use.
+If it is not there, you might need to add it, but I didn't test this, so your mileage may vary.
+Since you got the `UnsatisfiedLinkError` message,
+you should notice that the function does not have `__isl_export` before it
+(usually on the previous line, all by itself).
+You will need to add that.
+
+Next, you'll need to re-build ISL and the ISL JNI bindings.
+Repeat all but the last step (the `rm` command) from the section
+[Compiling the GeCoS ISL Tools](#compiling-the-gecos-isl-tools).
+Remember: when running this in the future, do not run that `rm` command ever again!
+Otherwise, the next time you add a new ISL binding,
+you'll probably need to re-export the function you're currently trying to export.
+
+The last step is to delete any caches of the shared libraries from the `alpha-language` repo.
+These are not normally in Git, so it's safe to delete them.
+The problem is that they cached the old version of the libraries,
+meaning they don't have the function you're trying to export,
+so you'll just get the same (or a similar) `UnsatisfiedLinkError` exception.
+You will need to delete all of the folders named `.jnimap.temp.linux_64`
+(they're hidden folders, hence the starting `.` character).
+One way to find them all is to run the below command from the terminal
+while at the root of the `alpha-language` repository.
+This will tell you where they are, then you can delete them with `rm`.
+
+```bash
+find . -type d -name .jnimap.temp.linux_64
+```
+
+When you try to run your code in Eclipse,
+you may need to clean and re-build everything before it all starts working.
