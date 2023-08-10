@@ -1,21 +1,23 @@
 # Adding ISL JNI Bindings
 This document describes how to add bindings for ISL functions to the JNI bindings.
 
-- [Preparation](#preparation)
-- [Clone the GeCoS ISL Tools Repository](#clone-the-gecos-isl-tools-repository)
-- [Installing PatchELF](#installing-patchelf)
-- [Fixing the GeCoS ISL Tools Java Home Path](#fixing-the-gecos-isl-tools-java-home-path)
-- [Compiling the GeCoS ISL Tools](#compiling-the-gecos-isl-tools)
-- [Test That Everything Works So Far](#test-that-everything-works-so-far)
-- [Modifying the ISL Bindings](#modifying-the-isl-bindings)
-- [Generate the New JNI Mapping](#generate-the-new-jni-mapping)
-- [Fix the `src-gen` Directory](#fix-the-src-gen-directory)
-- [Fix the C Files and Makefiles](#fix-the-c-files-and-makefiles)
-- [Double Check Changed Files](#double-check-changed-files)
-- [Recompile the GeCoS ISL Tools](#recompile-the-gecos-isl-tools)
-- [Load the New Bindings](#load-the-new-bindings)
-- [Test the New Bindings](#test-the-new-bindings)
-- [How to Fix `UnsatisfiedLinkError`](#how-to-fix-unsatisfiedlinkerror)
+* [Preparation](#preparation)
+* [Install PatchELF](#install-patchelf)
+* [Clone the GeCoS ISL Tools Repository](#clone-the-gecos-isl-tools-repository)
+* [Fix the GeCoS ISL Tools Java Home Path](#fix-the-gecos-isl-tools-java-home-path)
+* [Compile the GeCoS ISL Tools](#compile-the-gecos-isl-tools)
+* [Test That Everything Works So Far](#test-that-everything-works-so-far)
+* [Export the ISL Function If Necessary](#export-the-isl-function-if-necessary)
+* [Preserve the Existing Bindings](#preserve-the-existing-bindings)
+* [Update the JNI Map File](#update-the-jni-map-file)
+* [Generate the New JNI Mapping](#generate-the-new-jni-mapping)
+* [Fix the `src-gen` Directory](#fix-the-src-gen-directory)
+* [Fix the C Files and Makefiles](#fix-the-c-files-and-makefiles)
+* [Double Check Changed Files](#double-check-changed-files)
+* [Recompile the GeCoS ISL Tools](#recompile-the-gecos-isl-tools)
+* [Load the New Bindings](#load-the-new-bindings)
+* [Test the New Bindings](#test-the-new-bindings)
+* [How to Fix `UnsatisfiedLinkError`](#how-to-fix-unsatisfiedlinkerror)
 
 ## Preparation
 Before doing any of this, you should have a working version of Eclipse already set up.
@@ -35,6 +37,65 @@ I don't recommend deleting it right away though,
 just in case you have some other bindings you've added previously and still need.
 This way, you can easily copy them back in.
 
+## Install PatchELF
+As of 11-Jul-2023, several of the Makefiles in this repository run the `patchelf` command,
+which is not installed on the CSU machines by default.
+If you're following these instructions at a significantly later date,
+you should check whether this is still the case.
+To do so, I'd recommend searching the entire directory for "patchelf".
+If you don't find it, you can skip this step.
+Otherwise, follow this step to get a copy of it.
+
+At the time of writing, the main branch did not compile correctly on the CSU Linux machines.
+After playing around with different releases, I found that version 0.17.2 worked properly.
+This version is hard-coded into the script below.
+The best way to see if it is working is to look at the output from the `make check`
+and see whether there are any failures or not.
+The "set-rpath" command looks like the only one we use, so make sure that works.
+If the test fails for you, try a different release.
+All the releases can be found at this page:
+https://github.com/NixOS/patchelf/releases.
+
+You will also need to make the PatchELF executable visible from
+your `PATH` environment variable.
+By default, the CSU linux machines have the directory `~/bin/` in the path,
+so this is where I chose to put the executable.
+
+The script below will clone the PatchELF repository to `~/projects/patchelf/`,
+compile everything, and copy the executable to your `~/bin/` folder.
+
+```bash
+git clone -b 0.17.2 git@github.com:NixOS/patchelf.git "$HOME/projects/patchelf/"
+cd "$HOME/patchelf"
+./bootstrap.sh
+./configure
+make
+make check
+cp "$HOME/projects/patchelf/src/patchelf" "$HOME/bin/patchelf"
+```
+
+To test that this worked, run the commands below.
+It should print the version number from the Git command you used.
+The script above installs version 0.17.2.
+Note: the `cd` command here is to make sure you're not still in the directory
+where the PatchELF executable is found.
+
+```bash
+cd; patchelf --version
+```
+
+If this didn't work, it is likely because the `~/bin/` folder is not registered
+as part of your `PATH` environment variable.
+To check this, run `printenv PATH` and look for that folder.
+If it's not there, you can use the script below to update your ".bashrc" file
+to add it to your PATH.
+After doing this, 
+
+```bash
+echo 'export PATH="${HOME}/bin:${PATH}"' >> $HOME/.bashrc
+source $HOME/.bashrc
+```
+
 ## Clone the GeCoS ISL Tools Repository
 The GeCoS ISL Tools repository contains the Java bindings for ISL functions.
 Currently, this is controlled by Inria.
@@ -45,174 +106,105 @@ As of 11-Jul-2023, the master branch is not the one we want to use.
 Instead, we want the `isl-binding-updates` branch.
 You can use the command below to clone the correct branch
 (without needing to manually check it out after cloning).
-Additionally, some of the makefiles have hard-coded paths (relative to your home directory),
-so it should be cloned into the `~/projects/GeCoS/Tools/` directory.
-The commands below also include this.
+Additionally, some of the makefiles have hard-coded paths
+(relative to your home directory), so it needs to be cloned
+into the `$HOME/projects/GeCoS/Tools/` directory.
+The command below also includes this.
 
 ```bash
-mkdir -p $HOME/projects/GeCoS/Tools
-cd $HOME/projects/GeCoS/Tools/
-git clone -b isl-binding-updates https://gitlab.inria.fr/gecos/gecos-tools/gecos-tools-isl.git
+git clone -b isl-binding-updates https://gitlab.inria.fr/gecos/gecos-tools/gecos-tools-isl.git "$HOME/projects/GeCoS/Tools/gecos-tools-isl/"
 ```
 
-## Installing PatchELF
-As of 11-Jul-2023, several of the Makefiles in this repository run the `patchelf` command,
-which is not installed on the CSU machines by default.
-If you're following these instructions, you should check whether this is still the case.
-To do so, I'd recommend searching the entire directory for "patchelf".
-If you don't find it, you can skip this step.
-Otherwise, follow this step to get a copy of it.
+## Fix the GeCoS ISL Tools Java Home Path
+The compilation requires Java 11.
+If you don't have it, please install it.
 
-The PatchELF application is used for modifying
-[ELF (executable and linkable format) files](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format).
-Luckily, it has a publicly available GitHub repository: https://github.com/NixOS/patchelf.
-First, you will need clone the repository.
-At the time of writing, the main branch did not work correctly,
-so the command checks out a specific release that worked properly.
-After cloning, you just run the commands indicated in the README.
-The commands below perform all of these steps.
-Note: the `make check` command should not report any failures.
-If it does, try using a different release by replacing the version number in the command.
-The following page lists all the releases of PatchElf:
-https://github.com/NixOS/patchelf/releases.
+The GeCoS ISL Tools makefiles have a hardcoded Java Home path.
+In the various `native/build/` folders, there is a folder for the various supported
+operating systems you can build for.
+Inside each of these folders is a `user.mk` file, which is where the Java Home is set.
+Check the appropriate file for your system and see if the specified Java Home directory exists.
+If it does, you may skip the rest of this step.
+
+If the path doesn't exist, find an appropriate version of Java 11.
+It will likely be in nearly the same folder.
+You will want to update all the appropriate `user.mk` files to point to this directory.
+
+As of 11-Jul-2023, the OpenJDK Java 11 path you should use is `/usr/lib/jvm/java-11-openjdk/`.
+The command below will automatically update the `user.mk` file for ISL with this path.
 
 ```bash
-git clone -b 0.17.2 git@github.com:NixOS/patchelf.git
-cd patchelf
-./bootstrap.sh
-./configure
-make
-make check
+sed -i "s;JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/;JAVA_HOME=/usr/lib/jvm/java-11-openjdk/;" "$HOME/projects/GeCoS/Tools/gecos-tools-isl/bundles/fr.irisa.cairn.jnimap.isl/native/build/Linux_64/user.mk"
 ```
 
-Now that you've done this, you need to make the executable visible in your environment path.
-If you have root access, you can simply run `make install` here to install the application.
-However, anyone reading this is likely working on a CSU machine and does not have root access.
-It doesn't really matter how you make the application visible in your environment path,
-but I'll describe how I did this.
+## Compile the GeCoS ISL Tools
+Compiling the GeCoS ISL Tools was an error-prone process
+when initially writing these instructions (11-Jul-2023).
+Therefore, it's recommended to compile and test this before making any changes.
+There is a convenient script in the repository (`scripts/compile_native_bindings.sh`)
+which compiles everything, including the ISL, Barvinok, and Polylib bindings.
+However, at the time of writing, this failed at the Barvinok bindings,
+causing issues with the entire process.
+I did not need the Barvinok or Polylib bindings, so I did not attempt to fix them.
+Instead, I manually compiled the ISL portion and stopped there.
 
-The default `.bashrc` file (again, as of 11-Jul-2023) already adds `${HOME}/bin` to your path.
-To check if that's the case for you, either check your `.bashrc` file and look for the above,
-or run the command `printenv PATH` and look for the full path for the above.
-If it's not present, run the commands below.
-Note: the single and double quotes here are important to get right,
-so I'd recommend you copy-paste it into your terminal.
-These will add a line to your `.bashrc` file to add `~/bin` to your path,
-then reload your `.bashrc` file.
-
-```bash
-echo 'export PATH="${HOME}/bin:${PATH}"' >> $HOME/.bashrc
-source $HOME/.bashrc
-```
-
-Now, we need to copy the PatchELF executable to that newly created `bin` folder.
-Assuming you created the same `bin` folder as above
-and your terminal is still in the root of the repository,
-you can run the below command to copy the executable to the `bin` folder.
+The commands below will compile all of the ISL bindings.
+The final call to `make` may return some warnings, but this is OK.
+I recommend you check the output to make sure there were no errors, though.
+The `rm` command at the end deletes the copy of the ISL repository which was cloned,
+as it is no longer needed.
+I recommend you do not skip this, as it can cause issues depending on the steps
+you need to follow for updating the Java bindings.
 
 ```bash
-cp ./src/patchelf $HOME/bin/patchelf
-```
-
-Finally, to double check that everything was done correctly,
-you can run the below command to check the version of PatchELF.
-If everything is done right, you should get the version number.
-If Bash tells you that the command wasn't found, you may have done something wrong.
-
-```bash
-patchelf --version
-```
-
-If this works, feel free to delete the PatchELF repository, as we don't need it anymore.
-
-## Fixing the GeCoS ISL Tools Java Home Path
-As of 11-Jul-2023, the path to the Java Home directory used in the GeCoS ISL Tools makefiles
-is incorrect for the CSU machines.
-The path it tries to use is `/usr/lib/jvm/java-11-openjdk-amd64/`.
-However, we want to instead use the path `/usr/lib/jvm/java-11-openjdk/` (remove `-amd64`).
-You can either find-and-replace these paths (e.g., using VS Code)
-or manually modify the files listed below.
-Note: if you're only compiling ISL (which is the only one that curently works),
-you only need to modify the one in the ISL bundle.
-
-* `bundles/fr.irisa.cairn.jnimap.barvinok/native/build/Linux_64/user.mk`
-* `bundles/fr.irisa.cairn.jnimap.isl/native/build/Linux_64/user.mk`
-* `bundles/fr.irisa.cairn.jnimap.polylib/native/build/Linux_64/user.mk`
-
-## Compiling the GeCoS ISL Tools
-After cloning the repository, installing PatchELF (if necessary),
-and fixing the `JAVA_HOME` paths, you can finally try building the code.
-Since this may be error-prone, it's important to try building the code
-prior to trying to modify the JNI bindings.
-The easiest way to do this, assuming everything works correctly,
-is simply to run the script `scripts/compile_native_bindings.sh`.
-However, this is very automatic and will make it difficult to see if something failed.
-Therefore, I'd recommend manually using `cd` to go to the directories
-indicated in the script (see the `pushd` commands) and running `make`.
-This will let you see which steps complete successfully and which fail.
-You can stop after the first failure.
-
-Currently, I get a failure when I try to compile the NTL library.
-The repo's README file says that if you only need ISL,
-you only need to compile the GMP library, ISL library, and then the ISL bindings.
-Thus, the NTL libraries not working isn't a big deal, so I won't try fixing it.
-Hopefully you don't need it either!
-Sorry if you do.
-
-TODO: I should figure out how to get the entire thing to compile,
-and probably see if Louis can push fixes for all of the above into the repo.
-
-Below is a minimal script you can copy/paste commands from
-to only compile the ISL bindings (and its dependencies).
-This assumes your terminal is already at the root of the repository.
-The second to last command will then put you back to the  root of the repository
-(or wherever you ran the `pushd` command if you modified that path).
-The last command simply cleans up the copy of the ISL repository that gets cloned
-which is no longer needed.
-Note 1: the final call to `make` may return some warnings, which is OK.
-Note 2: if you followed the instructions to
-[fix an `UnsatisfiedLinkError`](#how-to-fix-unsatisfiedlinkerror),
-do not run the final `rm` command.
-
-```bash
-pushd bundles/fr.irisa.cairn.jnimap.isl/native/build/gmp
+cd "$HOME/projects/GeCoS/Tools/gecos-tools-isl/bundles/fr.irisa.cairn.jnimap.isl/native/build/gmp"
 make
 cd ../isl
 make
 cd ..
 make
-popd
-rm -rf bundles/fr.irisa.cairn.jnimap.isl/native/build/isl/isl/
+rm -rf "$HOME/projects/GeCoS/Tools/gecos-tools-isl/bundles/fr.irisa.cairn.jnimap.isl/native/build/isl/isl/"
 ```
+
+If you need the Barvinok or Polylib bindings,
+I recommend looking at the `compile_native_bindngs.sh` script to figure out how to do this.
+You may need to debug the build process in this case.
 
 ## Test That Everything Works So Far
 Before we start modifying the bindings, let's test that everything is working.
-Open Eclipse and select "File > Import".
-In the Import Wizard, select "General > Projects from Folder or Archive" and click "Next".
-To the right of the "Import source" textbox, click the "Directory" button.
-In the file picker window, navigate to the repository
-(which should be at `~/projects/GeCoS/Tools/gecos-tools-isl/`) and click "Open".
-Click the "Deselect All" button on the right,
-then select only the `gecos-tools-isl/bundles/fr.irisa.cairn.jnimap.isl` project.
-Note: if you are modifying the Barvinok or PolyLib bindings,
-you'll want to import those projects instead.
-Click "Finish" to complete the import.
 
-Wait for the project to finish building.
-In my version of Eclipse, the progress indicator is on the bottom-right corner of the screen.
-Double-clicking this brings up a window with more details.
-Once it completes, make sure there are no compilation errors.
+The first step is to import the ISL Java bindings project into Eclipse.
 
-Finally, you'll want to test that everything is working.
+1. Open Eclipse.
+2. Select "File > Import".
+3. In the Import Wizard, select "General > Projects from Folder or Archive" and click "Next".
+4. To the right of the "Import source" textbox, click the "Directory" button.
+5. In the file picker window, navigate to the repository and click "Open".
+   1. The repository should be at `~/projects/GeCoS/Tools/gecos-tools-isl/` if you've been following along.
+6. Click the "Deselect All" button on the right.
+7. Select only the `gecos-tools-isl/bundles/fr.irisa.cairn.jnimap.isl` project.
+   1. Note: if you are modifying the Barvinok or PolyLib bindings, you'll want to import those projects instead.
+8. Click "Finish" to complete the import.
+9. Wait for the project to finish building.
+   1.  In my version of Eclipse, the progress indicator is on the bottom-right corner of the screen. Double-clicking this brings up a window with more details.
+10. Make sure there are no compilation errors.
+
+Once this is done, you'll want to test that everything is working.
 You can do this however you want, but the steps below are how I did it.
 
-In the "alpha-language" repo, right-click one of the packages and select "New > Xtend Class".
-I chose to do this under `bundles/alpha.model/src/alpha.model`.
-Name the file anything you want (I chose "TestFile"),
-select the option to create the `main` method, then click "Finish".
-Write some code to call into ISL in any way you want.
-The code below is what I used.
-To run the code, right-click the file and select "Run As > Java Application".
+1. In Eclipse's Project Explorer, find any of the "alpha-language" packages.
+   1. I chose `alpha-language/bundles/alpha.model/src/alpha.model`.
+2. Right-click the package and select "New > Xtend Class".
+3. Name the file anything you want (I chose "TestFile").
+4. Select the option to create the `main` method.
+5. Click "Finish".
+6. Write some code to call into ISL in any way you want.
+   1. The code below is what I used.
+7. In the Project Explorer window, find the file you created.
+8. Right-click the file and select "Run As > Java Application".
+9. Check to see that the console output is what you expect.
+10. If the test succeeds, feel free to delete this test file.
+    1.  You may want to keep it for more testing after modifying the bindings.
 
 ```Xtend
 package alpha.model
@@ -224,22 +216,18 @@ class TestFile {
 	def static void main(String[] args) {
 		val mySet = ISLBasicSet.buildFromString(ISLContext.instance, "{ [i]: 0 <= i <= 5 }")
 		println(mySet.toString())
+		// Should output "{ [i] : 0 <= i <= 5 }" to the console.
 	}
 }
 ```
 
-If everything is working correctly, the console should output the set.
-At the time of writing, I was getting a lot of errors stating
+When initially writing this document, I was getting errors saying:
 "ELF load command address/offset not properly aligned".
 This ended up being due to the version of PatchELF I was using.
 If you get this issue, go back to the [Installing PatchElf](#installing-patchelf) section
 and try different releases until this works.
 
-We won't delete this test file just yet,
-as it will be useful when testing the newly added bindings.
-However, feel free to delete it once everything is done and working.
-
-## Modifying the ISL Bindings
+## Export the ISL Function If Necessary
 You'll first want to identify what methods you want added.
 To do this, you'll want to look at the ISL source code that the bindings are based off of.
 The repository and version being checked out by the build script are specified in the file
@@ -248,20 +236,85 @@ To look through the code, you can either clone the repo yourself and checkout th
 or go to the online version of the Git repo (https://repo.or.cz/isl.git)
 and search for the commit/tag being checked out.
 
-Once you've found the methods you want, you'll need to add them to the JNI map.
-The file to edit is `bundles/fr.irisa.cairn.jnimap.isl/src/Isl.jnimap`.
-In general, you will likely only need to add new function bindings to an existing group.
-The names of the groups match the names of the Java classes in the bindings.
-For example, if you want to modify the bindings for the `ISLMatrix` Java class,
-simply search for the group names `ISLMatrix`.
+After determining which functions you want to add to the bindings,
+find their signatures in the header files (under the `include/isl` folder).
+You may notice that may notice that many function signatures in these files
+have a line above them which says `__isl_export`.
+This line indicates that the function should be exported by the object files for use.
+If all the functions you want to use have this line, you can skip to the next step.
 
-Most function bindings are made of two parts.
-The first is a set of attributes that help specify how to generate the Java method.
-There are a handful of common attributes, listed in the table below.
-Pick the ones you want.
-Note: looking at the JNI Mapper code, it looks like the attributes may be ordered,
-so I'd recommend putting things in the same order as everythign else to avoid issues.
-To find the source of truth for all bindings, go to the following link and search for "Method:".
+Note: some files, like `mat.h`, don't use `__isl_export` at all,
+yet they still seem to work correctly.
+I'm not sure how this happens, so if none of the functions in the file have this,
+but there are Java bindings for these functions, you can probably skip this step.
+
+If any function you want to use does not have an `__isl_export` line above it,
+you will need to make changes to the GeCoS ISL Tools makefile.
+You should not attempt to modify ISL directly, as this would only work for you,
+and not for others who are attempting to use your code.
+Instead, make changes to `bundles/fr.irisa.cairn.jnimap.isl/native/build/isl/Makefile`.
+Find the line of code which runs `git submodule init` (line 23 at the time of writing).
+Prior to this line, add a command like the one below to modify the appropriate
+header file and add the `__isl_export` before it.
+The line of code below is an example I used for updating the `set.h` file
+to export the function `isl_basic_set_is_bounded`.
+
+```bash
+sed -i '/isl_basic_set_is_bounded/i __isl_export' isl/include/isl/set.h
+```
+
+If you made any changes here, you will need to recompile the GeCoS ISL Tools.
+The process is the same as before, but you can skip the build of GMP if you want.
+See: [Compile the GeCoS ISL Tools](#compile-the-gecos-isl-tools).
+Look carefully for compile errors being thrown during these steps.
+
+## Preserve the Existing Bindings
+The tool that generates the Java bindings for ISL does not work correctly.
+Instead of trying to fix all the issues with the generated code (or the tool itself),
+it's easier to preserve the original bindings, generate new ones,
+update the original ones, then swap the files around.
+
+First, close Eclipse if it's still open.
+Do not re-open Eclipse until instructed to do so.
+Then, run the commands below to preserve the existing bindings.
+
+```bash
+mv "$HOME/projects/GeCoS/Tools/gecos-tools-isl/bundles/fr.irisa.cairn.jnimap.isl/src-gen/" "$HOME/projects/GeCoS/Tools/"
+
+cp -r "$HOME/projects/GeCoS/Tools/gecos-tools-isl/bundles/fr.irisa.cairn.jnimap.isl/native/" "$HOME/projects/GeCoS/Tools/"
+```
+
+The `src-gen` folder contains all the Java code that gets called to invoke the bindings.
+If the current contents of the folder are present, they cause issues, so it is best
+to move everything out and let Eclipse recreate it.
+
+The `native` folder contains many C files that are necessary for the JNI bindings to work.
+The `build` subfolder is required for everything to work,
+and having the C files present doesn't cause issues,
+so this folder can just be copied.
+
+## Update the JNI Map File
+The JNI Map file specifies which functions are to be added to the Java bindings
+and how they should be written.
+The map file is `bundles/fr.irisa.cairn.jnimap.isl/src/Isl.jnimap`.
+Open this file in an editor that isn't Eclipse (e.g., VS Code).
+
+Partway through the file, you will see a variety of "groups".
+Each group represents a Java class (and is named the same as the Java class).
+Find the appropriate groups you want to add the bindings to.
+
+Each binding is specified in two parts.
+The first is a set of attributes that specify how the Java method is to be written.
+The second is the signature of the method being bound to.
+In general, you should be able to follow the format of similar bindings
+to create your new bindings.
+
+The table below lists a handful of commonly used attributes.
+It appears that there is a strict ordering (although I'm not 100% sure),
+so I recommend following the ordering laid out by other bindings.
+To get more information about the binding attributes,
+go to the following link and search for "Method :" (with a space).
+
 https://gitlab.inria.fr/gecos/gecos-tools/gecos-tools-jnimapper/-/blob/master/bundles/fr.irisa.cairn.jnimap/src/fr/irisa/cairn/JniMap.xtext
 
 | JNI Map Attribute | Description                                                                                                                           |
@@ -271,59 +324,44 @@ https://gitlab.inria.fr/gecos/gecos-tools/gecos-tools-jnimapper/-/blob/master/bu
 | protected         | Generates a `protected` method. By default, all generated methods are public.                                                         |
 | rename=newName    | The generated method will have whatever name you specify on the right-hand side of the equals ("newName" in the example on the left). |
 
-The second part of the binding is the signature of the method being bound to.
-Copy the method signature from ISL's code, and paste it here.
-If the signature was split across multiple lines,
-remove the newlines so they appear on a single line.
-If the function's return type has an `__isl_give` annotation, remove it.
-In the function's arguments, replace `__isl_give` with `give`,
-`__isl_take` with `take`, `__isl_keep` with `keep`, etc.
+Copy the method signature from the appropriate ISL header file.
+Then, go through the following list of changes and make all the changes that apply.
+The list might not be comprehensive, so look at similar bindings for guidance.
+
+1. Remove any newlines so the signature is all on one line.
+2. In the function's return type:
+   1. Remove the `__isl_give` annotation.
+   2. Replace `isl_bool` with `boolean`.
+3. In the function's arguments:
+   1. Replace `__isl_give` with `give`
+   2. Replace `__isl_take` with `take`
+   3. Replace `__isl_keep` with `keep`
 
 ## Generate the New JNI Mapping
-As of 11-Jul-2023, these tools don't work the exact way they're supposed to.
-Apparently, the JNI Mapping plugin is very sensitive to the version of Eclipse,
-and this version may be too new.
-Make sure to follow these steps carefully, as small deviations can cause issues.
+We are now ready to have Eclipse generate the new ISL Java bindings.
 
-If Eclipse is still open, close it.
-
-First, we need to make a copy of the `bundles/fr.irisa.cairn.jnimap.isl/src-gen/` directory.
-You can put the copy anywhere outside the repo.
-The command below is one way to make a copy, and puts the copy just outside the repo.
-This assumes you are at the root of the repo.
-
-```bash
-cp -r ./bundles/fr.irisa.cairn.jnimap.isl/src-gen/ ../
-```
-
-Now, we need to delete all of the Java files from the `src-gen` folder that's in the repo.
-The commands below will delete these files.
-
-```bash
-rm ./bundles/fr.irisa.cairn.jnimap.isl/src-gen/fr/irisa/cairn/jnimap/isl/*.java
-rm ./bundles/fr.irisa.cairn.jnimap.isl/src-gen/fr/irisa/cairn/jnimap/isl/platform/*.java
-```
-
-Open Eclipse again.
-In the Project Explorer, find the JNI map file (`fr.irisa.cairn.jnimap.isl/src/Isl.jnimap`).
-Right-click the file and select "Generate JNI Mapping".
-If any errors appear, it may be because you didn't delete the Java files.
-If so, start this section over.
-Allow Eclipse to finish building the code before continuing.
-There will be many compilation errors.
-This is OK, and we will be fixing those next.
+1. Open Eclipse again.
+2. In the Project Explorer, find the JNI map file.
+   1. `fr.irisa.cairn.jnimap.isl/src/Isl.jnimap`
+3. Right-click the file and select "Generate JNI Mapping".
+4. Allow Eclipse to finish building the code before continuing.
+   1. You should see the progress in the bottom-right corner of the screen.
+   2. Double-clicking the indicator will show a screen with more details.
+5. Ignore the compilation errors for now.
+6. Close Eclipse.
 
 ## Fix the `src-gen` Directory
-Close Eclipse again.
-In short, we will want to restore the previously saved copy of the `src-gen` folder,
-but with the changes that were needed to reflect the new bindings you want.
-Then, we will need to restore automatic changes to some other files.
+Now that the methods for the new Java bindings have been created,
+they can be copied from the new `src-gen` folder into the original one.
+This is easier than trying to fix all the errors in the new one.
+For all modifications made here, do not use (or even open) Eclipse.
+Use another editor, such as VS Code.
 
 The first file we want to get changes from is `ISLNative.java`.
 Many lines will likely be chagned here, but we only want to keep the new lines
 for the added ISL functions we want to use.
 You can use the command below to view all the changes to the file.
-Copy these lines to the copied version of the file that's outside the repository.
+Copy these lines to the original version of the file that's outside the repository.
 There should be a single line added per ISL function you added.
 
 ```bash
@@ -510,3 +548,4 @@ find . -type d -name .jnimap.temp.linux_64
 
 When you try to run your code in Eclipse,
 you may need to clean and re-build everything before it all starts working.
+*
