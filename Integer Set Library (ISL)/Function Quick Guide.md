@@ -6,9 +6,13 @@ This sometimes results in duplicates, which is OK.
 If there isn't an exactly equivalent function, but one that's close,
 I just put that one down.
 
-- [Constraints](#constraints)
-- [Matrices](#matrices)
-- [Sets](#sets)
+* [Affine Expressions](#affine-expressions)
+* [Constraints](#constraints)
+* [Matrices](#matrices)
+* [Sets](#sets)
+
+## Affine Expressions
+Flat range product - basically, concatenate two affine expressions. E.g., "\[i,j] -> \[i+j]" with "\[i,j] -> \[i-j]" becomes "\[i,j] -> \[i+j, i-j]".
 
 ## Constraints
 

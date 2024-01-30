@@ -1,24 +1,24 @@
 # Adding ISL JNI Bindings
 This document describes how to add bindings for ISL functions to the JNI bindings.
 
-- [Preparation](#preparation)
-- [Install PatchELF](#install-patchelf)
-- [Clone the GeCoS ISL Tools Repository](#clone-the-gecos-isl-tools-repository)
-- [Preserve the Existing Bindings](#preserve-the-existing-bindings)
-- [Find the ISL Functions to Import](#find-the-isl-functions-to-import)
-- [Update the JNI Map File](#update-the-jni-map-file)
-- [Generate the New JNI Mapping](#generate-the-new-jni-mapping)
-- [Clean Up After Eclipse](#clean-up-after-eclipse)
-- [Fix the `src-gen` Folder](#fix-the-src-gen-folder)
-- [Fix the `native` Folder](#fix-the-native-folder)
-- [Fix the GeCoS ISL Tools Java Home Path](#fix-the-gecos-isl-tools-java-home-path)
-- [Export the ISL Functions](#export-the-isl-functions)
-- [Double Check Changed Files](#double-check-changed-files)
-- [Compile the GeCoS ISL Tools](#compile-the-gecos-isl-tools)
-- [Fix Eclipse Projects](#fix-eclipse-projects)
-- [Test the New Bindings](#test-the-new-bindings)
-- [Debugging Issues](#debugging-issues)
-- [Final Cleanup](#final-cleanup)
+* [Preparation](#preparation)
+* [Install PatchELF](#install-patchelf)
+* [Clone the GeCoS ISL Tools Repository](#clone-the-gecos-isl-tools-repository)
+* [Preserve the Existing Bindings](#preserve-the-existing-bindings)
+* [Find the ISL Functions to Import](#find-the-isl-functions-to-import)
+* [Update the JNI Map File](#update-the-jni-map-file)
+* [Generate the New JNI Mapping](#generate-the-new-jni-mapping)
+* [Clean Up After Eclipse](#clean-up-after-eclipse)
+* [Fix the `src-gen` Folder](#fix-the-src-gen-folder)
+* [Fix the `native` Folder](#fix-the-native-folder)
+* [Fix the GeCoS ISL Tools Java Home Path](#fix-the-gecos-isl-tools-java-home-path)
+* [Export the ISL Functions](#export-the-isl-functions)
+* [Double Check Changed Files](#double-check-changed-files)
+* [Compile the GeCoS ISL Tools](#compile-the-gecos-isl-tools)
+* [Fix Eclipse Projects](#fix-eclipse-projects)
+* [Test the New Bindings](#test-the-new-bindings)
+* [Debugging Issues](#debugging-issues)
+* [Final Cleanup](#final-cleanup)
 
 ## Preparation
 Before doing any of this, you should have a working version of Eclipse already set up.
@@ -42,7 +42,6 @@ If you have made changes before and want to start from scratch,
 make sure you identify any changes you've made to the following files:
 
 - `bundles/fr.irisa.cairn.jnimap.isl/src/Isl.jnimap`
-- `
 
 ## Install PatchELF
 As of 11-Jul-2023, several of the Makefiles in this repository run the `patchelf` command,
@@ -110,10 +109,10 @@ Currently, this is controlled by Inria.
 The repository can be found on GitLab at:
 https://gitlab.inria.fr/gecos/gecos-tools/gecos-tools-isl/
 
-As of 11-Jul-2023, the master branch is not the one we want to use.
-Instead, we want the `isl-binding-updates` branch.
-You can use the command below to clone the correct branch
-(without needing to manually check it out after cloning).
+As of 23-Jan-2024, the master branch is the one we want to use.
+If a different branch is required later on, add the option `-b my-branch`
+(replacing "my-branch" with the name of the branch)
+between the `--depth 1` and the URL for the repo (starting with "https").
 Additionally, some of the makefiles have hard-coded paths
 (relative to your home directory), so it needs to be cloned
 into the `$HOME/projects/GeCoS/Tools/` directory.
@@ -269,8 +268,10 @@ Otherwise, Eclipse will continue to load the old bindings.
 In the terminal, navigate to the "alpha-language" repo
 and run the following command.
 Then, for each folder that it indicates, delete it using `rm -rf` (or whatever you prefer).
+Note: it is OK if nothing appears.
 
 ```bash
+cd /path/to/alpha-language/repository
 find . -type d -name .jnimap.temp.linux_64
 ```
 
@@ -323,6 +324,9 @@ and copy the changes to the original version of the folder that's outside the re
 Continuing the example from before, when I added the `isl_mat_concat` function,
 the file `ISL_ISLMatrix_native.c` was updated to include a version of the function.
 
+Note: if you added some custom functions to a module,
+you'll likely also need to keep changes to the file `ISL_UserModules.c`.
+
 After making all the changes, the two `native` folders need to be swapped.
 The commands below will do this in the same manner as the `src-gen` folders.
 
@@ -358,6 +362,7 @@ sed -i "s;JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/;JAVA_HOME=/usr/lib/jvm/j
 Recall the functions you recorded in the
 [Finding the ISL Functions to Import](#find-the-isl-functions-to-import) section
 which did not have the `__isl_export` line above it.
+If there were no such functions, you can skip this step.
 For each function, you will need to make changes to the GeCoS ISL Tools makefile.
 
 You should not attempt to modify ISL directly, as this would only work for you,
@@ -376,7 +381,7 @@ Instead, this is referring to an `isl` subfolder which will be created
 during the build process, which will be a clone of the ISL repository itself.
 
 ```bash
-sed -i '/isl_basic_set_is_bounded/i __isl_export' isl/include/isl/set.h
+awk '/isl_basic_set_is_bounded/ {print "__isl_export"} 1' isl/include/isl/set.h > _temp && mv _temp isl/include/isl/set.h
 ```
 
 ## Double Check Changed Files
@@ -448,7 +453,7 @@ Before you can use the new bindings, you will need to fix Eclipse.
 11. Wait for the clean and build process to finish.
     1. Eclipse has a progress indicator on the bottom-right corner of the screen.
     2. Double-clicking this brings up a window with more details.
-12. Check that there are errors in the compilation.
+12. Check that there are no errors in the compilation.
 
 If there are compile errors, there are a few potential reasons.
 

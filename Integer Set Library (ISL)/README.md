@@ -139,6 +139,13 @@ This means, if you get the sets that make up this set, some of them may overlap.
 To get a version of the set that's disjoint,
 you can use the `isl_set_make_disjoint(set)` function in `isl_map_subtract.c`.
 
+There are two functions for checking set equality.
+They are named `isl_set_plain_is_equal(set1, set2)` and `isl_set_is_equal(set1, set2)`.
+The "plain" function does a quick check only on the underlying structure of the set
+(e.g., the coefficients of the equations) to see if they are the same set.
+The non-plain function performs a more thorough check to determine if
+the two sets are equivalent, even if the underlying structures differ.
+
 ## Constraints
 Any set or map (including the basic ones) is likely to be defined
 as a set of constraints in a given space.
