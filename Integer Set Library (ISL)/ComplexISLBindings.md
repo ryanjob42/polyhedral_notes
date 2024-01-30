@@ -3,6 +3,15 @@ This document was created when trying to add a binding which the JNI Mapper does
 As any such case likely has many nuances unique to that case,
 this document will be written as a case study of what has worked.
 
+- [Situation Overview](#situation-overview)
+- [Updating the JNI Map File](#updating-the-jni-map-file)
+    - [Creating a Result Data Structure](#creating-a-result-data-structure)
+    - [Creating a Group for the Data Structure](#creating-a-group-for-the-data-structure)
+    - [Creating the Custom C Function](#creating-the-custom-c-function)
+    - [Bind the Custom Functions to the Desired Group](#bind-the-custom-functions-to-the-desired-group)
+- [Generating and Populating the New Files](#generating-and-populating-the-new-files)
+- [Re-Compile the Bindings](#re-compile-the-bindings)
+
 ## Situation Overview
 For our work, we needed access to the "left Hermite" function from ISL.
 This is found in `mat.c` as the `isl_mat_left_hermite` function.
@@ -14,9 +23,16 @@ so they point to these new matrices.
 At the time of writing, the JNI Mapper does not have a way to directly generate code for this situation.
 To get access to this function, we performed the following high-level steps:
 
-1. Create a data structure for holding all three of these matrices.
-2. Create a new C function that calls isl's left Hermite function, wraps the results in the new data structure, and returns that.
-3. Update the JNI map file accordingly so we have access to the new function in Java.
+1. Update the JNI map file to define:
+    1. A new data structure for holding all three of these matrices.
+    2. Custom C functions that call isl's left Hermite function, wrap the results in the new data structure, and return that.
+    3. New bindings in the `ISLMatrix` Java class to the custom C function.
+2. Re-generate the JNI mapping.
+3. Make some manual changes to:
+    1. Define a C struct for the new data structure.
+    2. Define the custom C functions.
+    3. Fix the Makefiles so everything gets compiled correctly.
+4. Compile the updated bindings.
 
 ## Updating the JNI Map File
 The first step is to update the JNI map file to describe the changes you want to make.
@@ -217,7 +233,9 @@ Finally, these files were not created or updated, but you will need to manually 
     4. New build targets need to be created for each `.o` file you specified previously.
         1. It's recommended you just copy/paste similar targets and adjust them accordingly.
 
-Here are the commands to re-compile the bindings.
+## Re-Compile the Bindings
+The final step is to re-compile the bindings.
+The comands to do this are shown below.
 If you've changed where these files are located (which is not supported at the time of writing, as the build hard-codes these paths),
 then you will need to change the path in the first command.
 Also, for pushing out the final update, you may need to do this build on several different machines (one for each target you want to compile for).
