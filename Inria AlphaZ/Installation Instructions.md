@@ -2,15 +2,16 @@
 This document describes how to install the Inria version of AlphaZ
 which was forked for development at CSU.
 
-- [Download Eclipse](#download-eclipse)
-- [Clone the Alpha Language Repository](#clone-the-alpha-language-repository)
-- [Add Plugin Sources](#add-plugin-sources)
-  - [Quick Import](#quick-import)
-  - [Manual Import](#manual-import)
-- [Install Plugins](#install-plugins)
-- [Import the Alpha Language Packages](#import-the-alpha-language-packages)
-  - [Fixing the Import](#fixing-the-import)
-- [Test the Installation](#test-the-installation)
+* [Download Eclipse](#download-eclipse)
+* [Clone the Alpha Language Repository](#clone-the-alpha-language-repository)
+* [Add Plugin Sources](#add-plugin-sources)
+  * [Quick Import](#quick-import)
+  * [Manual Import](#manual-import)
+* [Install Plugins](#install-plugins)
+  * [Fixing targetmapping for Windows](#fixing-targetmapping-for-windows)
+* [Import the Alpha Language Packages](#import-the-alpha-language-packages)
+  * [Fixing the Import](#fixing-the-import)
+* [Test the Installation](#test-the-installation)
 
 ## Download Eclipse
 This version of AlphaZ requires Eclipse 2022-06 (4.24).
@@ -33,6 +34,8 @@ Move this folder to whatever location makes the most sense to you.
 If you plan on having multiple Eclipse installations
 (e.g., one for the Inria AlphaZ and one for the CSU AlphaZ),
 you can rename the folder to better identify this version of Eclipse.
+
+Note: you will need Java 11 installed to run this version of Eclipse.
 
 ## Clone the Alpha Language Repository
 Using Git, clone the main branch of the Alpha Language repository.
@@ -62,9 +65,9 @@ Next, either follow the [Quick Import](#quick-import)
 or the [Manual Import](#manual-import) steps.
 
 ### Quick Import
-First, create a file anywhere on your computer with a ".xml" extension.
-Then, copy the following into the file, save, and close.
-TODO: make this a downloadable file.
+To make this easy, you can download the "Eclipse Plugins Import.xml" file in this repo.
+Otherwise, create a file anywhere on your computer with a ".xml" extension,
+copy the following into the file, save, and close.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -73,7 +76,7 @@ TODO: make this a downloadable file.
    <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-emf/artifacts/" selected="true" name="GeCoS EMF"/>
    <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-framework/artifacts/" selected="true" name="GeCoS Framework"/>
    <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-graph/artifacts/" selected="true" name="GeCoS Graph"/>
-   <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-isl/artifacts/" selected="true" name="GeCoS ISL"/>
+   <site url="https://gecos.gitlabpages.inria.fr/gecos-tools/gecos-tools-isl/artifacts/" selected="true" name="GeCoS ISL"/>
    <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-jnimapper/artifacts/" selected="true" name="GeCoS JNI Mapper"/>
    <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-tommapping/artifacts/" selected="true" name="GeCoS Tom Mapping"/>
    <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-tomsdk/artifacts/" selected="true" name="GeCoS Tom SDK"/>
@@ -97,7 +100,7 @@ Repeat these steps for all rows of the table below.
 | GeCoS EMF         | https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-emf/artifacts/        |
 | GeCoS Framework   | https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-framework/artifacts/        |
 | GeCoS Graph       | https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-graph/artifacts/      |
-| GeCoS ISL         | https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-isl/artifacts/        |
+| GeCoS ISL         | https://gecos.gitlabpages.inria.fr/gecos-tools/gecos-tools-isl/artifacts/          |
 | GeCoS JNI Mapper  | https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-jnimapper/artifacts/  |
 | GeCoS Tom Mapping | https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-tommapping/artifacts/ |
 | GeCoS Tom SDK     | https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-tomsdk/artifacts/     |
@@ -108,6 +111,9 @@ Now that the sources have all been added, the plugins can be installed.
 In the "Available Software" window, in the `Work with` dropdown menu,
 select "--All Available Sites--".
 Check the checkboxes for all of the plugins in the list below, then click `Next`.
+
+Note: on Windows, there may be an issue with the "Alpha Language" site/package.
+Skip those for now and reference the [Fixing targetmapping for Windows](#fixing-targetmapping-for-windows) subsection.
 
 Plugins to Install:
 - Alpha
@@ -153,6 +159,32 @@ Click the `Select All` button, then `Trust Selected` to allow the plugins to be 
 A new window should appear asking to restart Eclipse.
 Click `Restart Now` and wait for Eclipse to load again.
 
+### Fixing targetmapping for Windows
+This section only applys if you're trying to install Alpha on Windows.
+Skip it if you're not.
+
+Install Maven by downloading the zip file from the link below,
+unzipping it to somewhere that it can live forever,
+and then adding the `bin` directory that's inside it to your PATH.
+
+https://maven.apache.org/install.html
+
+In a terminal, `cd` into the alpha-language repo, then run `mvn package`.
+This will take a few minutes.
+
+In Eclipse, go to "Help > Install New Software".
+Click "Manage", then "Add", then "Local".
+Navigate to the alpha-language repo, then go to `releng\alpha.language.update\target\repository\`.
+Click "Select Folder".
+Set the name to something like "Local Alpha Plugins" and click "Add", then "Apply and Close".
+
+In the "Work with" drop-down menu, select what you just added ("Local Alpha Plugins" if you did the same as above).
+Select the "Alpha > Alpha Language" software, then click "Next".
+Once it loads, click the new "Next" button, accept the license agreement, and click "Finish".
+
+Wait for the "Trust" window to appear, then hit "Select All" and "Trust Selected".
+Wait for the software to install, then when the window appears, let Eclipse restart now.
+
 ## Import the Alpha Language Packages
 To properly use the AlphaZ compiler, the latest copy of the Alpha Language repository
 must be imported into Eclipse.
@@ -172,7 +204,6 @@ right-click it, and select `Close Project`.
 Projects to Close:
 - `alpha-language/bundles/alpha.model.wizard`
 - `alpha-language/bundles/alpha.targetmapping.xtext`
-- `alpha-language/tests/alpha.model.tests`
 - `alpha-language/tests/alpha.targetmapping.tests`
 
 Additionally, at the time of writing, one of the projects is missing some folders.
@@ -211,26 +242,32 @@ or by clicking the "Save" icon at the top of the Eclipse window.
 In the "Project Explorer" window, right-click the project you created and select `New > Folder`.
 Using the `Folder name` textbox, name the folder `resources` and click `Finish`.
 Right-click that folder and select `New > File`.
-On the "File" screen which appears, give the file a name such as "Install Test.alpha"
-and click `Finish`.
+On the "File" screen which appears, give the file a name such as "InstallTest.alpha" and click `Finish`.
+Note: putting spaces in the name can cause issues sometimes, so it's best to avoid them.
+If it asks if you want to convert the project to an Xtext project, click No.
 
+Note: instead of manually creating this file, you can download it from here and load it into Eclipse.
 In the "Project Explorer" window, navigate to that newly created Alpha file, and double-click it.
-If a window appears asking if you want to convert the project to an "Xtext project", click `No`.
+Again, if a window appears asking if you want to convert the project to an "Xtext project", click `No`.
 Write any Alpha program in this file, such as the one below, then save the file.
 
 ```
-affine InstallTest [N] -> {: N>0}
-	inputs  X: [N]
-	outputs Y: [N]
-	let Y[i] = X[N-i-1];
-.
+package installTest {
+  affine InstallTest [N] -> {: N>0}
+    inputs  X: [N]
+    outputs Y: [N]
+    let Y[i] = X[N-i-1];
+  .
+}
 ```
 
 In the "Project Explorer" window, right-click the project you created and select `New > Package`.
-In the "Java Package" screen that appears, give the package a name.
-If you added a package declaration in the Alpha program (the example did not),
+In the "Java Package" screen that appears, give the package a name (the example uses "installTest").
+If you added a package declaration in the Alpha program (the example uses "installTest"),
 set the name of the package to be the same as the package declaration in the program.
 Leave all other options as the defaults, and click `Finish`.
+
+Note: instead of these steps, you can download the file from this repo and load it into Eclipse.
 Right-click the newly created package and select `New > Other`.
 In the "Select a wizard" screen that appears, select `Xtend > Xtend Class` and click `Next`.
 Name the class ("InstallTestCompile" for example),
@@ -249,10 +286,10 @@ import alpha.model.AlphaModelLoader
 import alpha.model.util.Show
 
 class InstallTestCompile {
-	def static void main(String[] args) {
-		var root = AlphaModelLoader.loadModel("resources/Install Test.alpha")
-		println(Show.print(root))
-	}
+    def static void main(String[] args) {
+        val root = AlphaModelLoader.loadModel("resources/Install Test.alpha")
+        println(Show.print(root))
+    }
 }
 ```
 
@@ -263,12 +300,14 @@ In the example above, it will output the "InstallTest` Alpha program, with a few
 The output of the example is below.
 
 ```
-affine InstallTest [N] -> {  : N > 0 }
-	inputs
-		X : {[i0]: 0 <= i0 < N }
-	outputs
-		Y : {[i0]: 0 <= i0 < N }
-	when {  : N > 0 } let
-		Y = (i->N-i-1)@X;
-.
+package installTest {
+    affine InstallTest [N] -> {: N>0}
+        inputs  X: [N]
+        outputs Y: [N]
+        let Y[i] = X[N-i-1];
+    .
+}
 ```
+
+Note: if you're on Windows, you may have gotten an exception that it couldn't initialize an `ISLContext` instance.
+In that case, you'll have to figure out how to compile the gecos-tools-isl for Windows.

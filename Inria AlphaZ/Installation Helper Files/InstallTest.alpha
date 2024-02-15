@@ -1,0 +1,7 @@
+package installTest {
+    affine InstallTest [N] -> {: N>0}
+        inputs  X: [N]
+        outputs Y: [N]
+        let Y[i] = X[N-i-1];
+    .
+}

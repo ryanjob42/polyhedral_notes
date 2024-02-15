@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bookmarks>
+   <site url="https://csu-cs-melange.github.io/alpha-language/" selected="true" name="Alpha Language"/>
+   <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-emf/artifacts/" selected="true" name="GeCoS EMF"/>
+   <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-framework/artifacts/" selected="true" name="GeCoS Framework"/>
+   <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-graph/artifacts/" selected="true" name="GeCoS Graph"/>
+   <site url="https://gecos.gitlabpages.inria.fr/gecos-tools/gecos-tools-isl/artifacts/" selected="true" name="GeCoS ISL"/>
+   <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-jnimapper/artifacts/" selected="true" name="GeCoS JNI Mapper"/>
+   <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-tommapping/artifacts/" selected="true" name="GeCoS Tom Mapping"/>
+   <site url="https://www.cs.colostate.edu/AlphaZ/gecos-mirror/gecos-tools-tomsdk/artifacts/" selected="true" name="GeCoS Tom SDK"/>
+   <site url="https://groovy.jfrog.io/artifactory/plugins-release/e4.24" selected="true" name="Groovy Eclipse"/>
+</bookmarks>
