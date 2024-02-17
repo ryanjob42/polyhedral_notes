@@ -117,6 +117,8 @@ sudo apt upgrade
 sudo apt install openjdk-11-jre libwebkit2gtk-4.0-37
 ```
 
+Note: if you're working with the CSU AlphaZ version, you will also need to install `openjdk-8-jre`.
+
 To make sure everything is installed and configured correctly,
 restart the Linux system.
 Simply exit the Linux terminal, then in Windows, run the command below to shut down Linux.
