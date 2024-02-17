@@ -8,7 +8,6 @@ which was forked for development at CSU.
   * [Quick Import](#quick-import)
   * [Manual Import](#manual-import)
 * [Install Plugins](#install-plugins)
-  * [Fixing targetmapping for Windows](#fixing-targetmapping-for-windows)
 * [Import the Alpha Language Packages](#import-the-alpha-language-packages)
   * [Fixing the Import](#fixing-the-import)
 * [Test the Installation](#test-the-installation)
@@ -112,8 +111,10 @@ In the "Available Software" window, in the `Work with` dropdown menu,
 select "--All Available Sites--".
 Check the checkboxes for all of the plugins in the list below, then click `Next`.
 
-Note: on Windows, there may be an issue with the "Alpha Language" site/package.
-Skip those for now and reference the [Fixing targetmapping for Windows](#fixing-targetmapping-for-windows) subsection.
+Note: on Windows (WSL2), there may be an issue with the "Alpha Language" site/package.
+Install what you're able to, then follow the section in the WSL2 instructions about it.
+Also, I found that the plugin "EMF - Eclipse Modeling Framework Xcore SDK" didn't seem to install the first time.
+This may be user error, but if you have trouble getting things to compile, double check that it's installed.
 
 Plugins to Install:
 - Alpha
@@ -159,31 +160,6 @@ Click the `Select All` button, then `Trust Selected` to allow the plugins to be 
 A new window should appear asking to restart Eclipse.
 Click `Restart Now` and wait for Eclipse to load again.
 
-### Fixing targetmapping for Windows
-This section only applys if you're trying to install Alpha on Windows.
-Skip it if you're not.
-
-Install Maven by downloading the zip file from the link below,
-unzipping it to somewhere that it can live forever,
-and then adding the `bin` directory that's inside it to your PATH.
-
-https://maven.apache.org/install.html
-
-In a terminal, `cd` into the alpha-language repo, then run `mvn package`.
-This will take a few minutes.
-
-In Eclipse, go to "Help > Install New Software".
-Click "Manage", then "Add", then "Local".
-Navigate to the alpha-language repo, then go to `releng\alpha.language.update\target\repository\`.
-Click "Select Folder".
-Set the name to something like "Local Alpha Plugins" and click "Add", then "Apply and Close".
-
-In the "Work with" drop-down menu, select what you just added ("Local Alpha Plugins" if you did the same as above).
-Select the "Alpha > Alpha Language" software, then click "Next".
-Once it loads, click the new "Next" button, accept the license agreement, and click "Finish".
-
-Wait for the "Trust" window to appear, then hit "Select All" and "Trust Selected".
-Wait for the software to install, then when the window appears, let Eclipse restart now.
 
 ## Import the Alpha Language Packages
 To properly use the AlphaZ compiler, the latest copy of the Alpha Language repository
@@ -241,14 +217,13 @@ or by clicking the "Save" icon at the top of the Eclipse window.
 
 In the "Project Explorer" window, right-click the project you created and select `New > Folder`.
 Using the `Folder name` textbox, name the folder `resources` and click `Finish`.
-Right-click that folder and select `New > File`.
+You can either then copy the "InstallTest.alpha" file in this repo here,
+or follow the instructions below to create it manually.
+
+Right-click the new "resources" folder and select `New > File`.
 On the "File" screen which appears, give the file a name such as "InstallTest.alpha" and click `Finish`.
 Note: putting spaces in the name can cause issues sometimes, so it's best to avoid them.
 If it asks if you want to convert the project to an Xtext project, click No.
-
-Note: instead of manually creating this file, you can download it from here and load it into Eclipse.
-In the "Project Explorer" window, navigate to that newly created Alpha file, and double-click it.
-Again, if a window appears asking if you want to convert the project to an "Xtext project", click `No`.
 Write any Alpha program in this file, such as the one below, then save the file.
 
 ```
@@ -287,7 +262,7 @@ import alpha.model.util.Show
 
 class InstallTestCompile {
     def static void main(String[] args) {
-        val root = AlphaModelLoader.loadModel("resources/Install Test.alpha")
+        val root = AlphaModelLoader.loadModel("resources/InstallTest.alpha")
         println(Show.print(root))
     }
 }
