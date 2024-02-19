@@ -122,6 +122,14 @@ Note: if you're working with the CSU AlphaZ version, you will also need to insta
 Note 2: the last package, `adwaita-icon-theme-full`, is just to install cursors.
 It is not strictly necessary.
 
+Sidebar: while using AlphaZ this way, an error was reported by Eclipse
+stating that it didn't have access to `/dev/dr/renderD128`.
+No negative effects were found due to this, but the following command fixes it:
+
+```bash
+sudo usermod -a -G render $USER
+```
+
 To make sure everything is installed and configured correctly,
 restart the Linux system.
 Simply exit the Linux terminal, then in Windows, run the command below to shut down Linux.
@@ -130,9 +138,6 @@ Then, you can launch Linux again.
 ```bash
 wsl --shutdown
 ```
-
-Ok, definitely need openjdk and libwebkit, probably still need libswt, probably don't need the icon theme?
-Let's redo everything and try again without those.
 
 If you want to have minimize and maximize buttons, you'll also need to set a configuration.
 Just run the command below to do so.
@@ -226,6 +231,17 @@ sudo ln -s /usr/lib/jvm/java-11-openjdk-amd64 /usr/lib/jvm/java-11-openjdk
 Side note: on Ubuntu, you may also want to install `sudo apt install build-essential`,
 which has some additional compilation tools.
 They were not necessary at the time of writing, though.
+
+
+## Known Issues
+As of 19-Feb-2024, menus can go off the screen (especially the right-click menu).
+If you really want it working correctly, then add `export GDK_BACKEND=x11` to your .bashrc file.
+The window doesn't look as nice, and seems to run a bit slower, so use at your own discresion.
+For future reference, here's a link to a GitHub issue on this.
+If you're reading this please check the link and see if the issue has been fixed.
+If fixed, please update these instructions (or contact someone who can).
+
+https://github.com/microsoft/wslg/issues/584
 
 
 ## Help for Graphics Issues
