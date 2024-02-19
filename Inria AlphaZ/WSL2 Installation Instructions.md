@@ -114,10 +114,13 @@ which may have different names for these packages.
 ```bash
 sudo apt update
 sudo apt upgrade
-sudo apt install openjdk-11-jre libwebkit2gtk-4.0-37
+sudo apt install openjdk-11-jre libwebkit2gtk-4.0-37 adwaita-icon-theme-full
 ```
 
 Note: if you're working with the CSU AlphaZ version, you will also need to install `openjdk-8-jre`.
+
+Note 2: the last package, `adwaita-icon-theme-full`, is just to install cursors.
+It is not strictly necessary.
 
 To make sure everything is installed and configured correctly,
 restart the Linux system.
@@ -249,5 +252,4 @@ It is recommended you install them one at a time, restarting the Linux instance 
 
 ```bash
 sudo apt install libswt-gtk-4-jni
-sudo apt install adwaita-icon-theme-full
 ```
