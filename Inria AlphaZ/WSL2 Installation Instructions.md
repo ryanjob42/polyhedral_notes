@@ -235,8 +235,9 @@ They were not necessary at the time of writing, though.
 
 ## Known Issues
 As of 19-Feb-2024, menus can go off the screen (especially the right-click menu).
-If you really want it working correctly, then add `export GDK_BACKEND=x11` to your .bashrc file.
-The window doesn't look as nice, and seems to run a bit slower, so use at your own discresion.
+If you really want it working correctly, then add `export GDK_BACKEND=x11` to your .bashrc and .profile files.
+(the first is needed if you launch Eclipse from a terminal, the other is needed if you're not).
+The window doesn't look as nice, and has issues when dragging & dropping tabs around, so use at your own discresion.
 For future reference, here's a link to a GitHub issue on this.
 If you're reading this please check the link and see if the issue has been fixed.
 If fixed, please update these instructions (or contact someone who can).
