@@ -12,6 +12,9 @@ with the possible exception of how you get the Eclipse tarball into your Linux f
 * [Creating a Shortcut on Windows](#creating-a-shortcut-on-windows)
 * [Build and Install the Alpha-Language Package](#build-and-install-the-alpha-language-package)
 * [Compiling GeCoS ISL](#compiling-gecos-isl)
+* [Known Issues](#known-issues)
+    * [Menus Extend Off Screen](#menus-extend-off-screen)
+    * [Windows Disappear on Network Changes](#windows-disappear-on-network-changes)
 * [Help for Graphics Issues](#help-for-graphics-issues)
 
 
