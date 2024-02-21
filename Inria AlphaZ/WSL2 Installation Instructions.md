@@ -234,6 +234,9 @@ They were not necessary at the time of writing, though.
 
 
 ## Known Issues
+Here is a list of known issues.
+
+### Menus Extend Off Screen
 As of 19-Feb-2024, menus can go off the screen (especially the right-click menu).
 If you really want it working correctly, then add `export GDK_BACKEND=x11` to your .bashrc and .profile files.
 (the first is needed if you launch Eclipse from a terminal, the other is needed if you're not).
@@ -243,6 +246,16 @@ If you're reading this please check the link and see if the issue has been fixed
 If fixed, please update these instructions (or contact someone who can).
 
 https://github.com/microsoft/wslg/issues/584
+
+### Windows Disappear on Network Changes
+As of 21-Feb-2024, if your network connection changes (e.g., wifi connects or disconnects),
+then all GUI windows (including Eclipse) will disappear.
+Attempting to open any other GUI window will cause them to reappear, though.
+This is captured in a handful of related GitHub issues for WSLg, linked below.
+
+* https://github.com/microsoft/wslg/issues/1108
+* https://github.com/microsoft/wslg/issues/1092
+* https://github.com/microsoft/wslg/issues/1098
 
 
 ## Help for Graphics Issues
