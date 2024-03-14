@@ -35,6 +35,13 @@ If you plan on having multiple Eclipse installations
 you can rename the folder to better identify this version of Eclipse.
 
 Note: you will need Java 11 installed to run this version of Eclipse.
+If you're using a CSU machine, it should already be there
+(you might just need to use a `module` command to load it).
+If you're on your own system and need to install it, you can use the command below.
+
+```bash
+sudo apt install openjdk-11-jre
+```
 
 ## Clone the Alpha Language Repository
 Using Git, clone the main branch of the Alpha Language repository.
