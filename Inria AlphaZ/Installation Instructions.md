@@ -176,21 +176,23 @@ In the "Select" window, select `General > Existing Projects into Workspace`.
 Next to the "Select root directory" dropdown menu, click `Browse`.
 Navigate to the Alpha Language folder cloned previously, then click "Open".
 In the "Import Projects" window, in the "Options" section, select "Search for nested projects".
-Click `Select All`, then `Finish`.
 
-### Fixing the Import
+For most use cases, you will only need to import the `alpha.model` package.
+You may also want `alpha.codegen`, `alpha.commands`, and the `.test` packages for each of them.
+If you're just starting out, only import `alpha.model`.
+
+### Fixing the Imports
 At the time of writing, several unnecessary projects have compile errors.
-These projects can all be closed.
-In the "Project Explorer" window, find each of the projects in the list below,
-right-click it, and select `Close Project`.
+If you imported these projects, they can be closed by right-clicking them in the "Project Explorer" window
+and selecting "Close Project".
 
 Projects to Close:
 - `alpha-language/bundles/alpha.model.wizard`
 - `alpha-language/bundles/alpha.targetmapping.xtext`
 - `alpha-language/tests/alpha.targetmapping.tests`
 
-Additionally, at the time of writing, one of the projects is missing some folders.
-In the "Project Explorer" window, find the `alpha-language/bundles/alpha.loader` project.
+Additionally, at the time of writing, the `alpha.loader` project is missing some necessary folders.
+If you've imported it, find the `alpha-language/bundles/alpha.loader` project in the "Project Explorer" window.
 Right-click the project and select `New > Folder`.
 Name the folder `src-gen` and click `Finish`.
 Right-click the project again and select `New > Folder`.
